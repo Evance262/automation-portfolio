@@ -1,6 +1,6 @@
 # Evance Chapuma — AI Automation Portfolio
 
-[![Upwork](https://img.shields.io/badge/Hire%20Me%20on-Upwork-6FDA44?style=for-the-badge&logo=upwork&logoColor=white)](https://www.upwork.com/freelancers/YOUR_PROFILE_ID)
+[![Upwork](https://img.shields.io/badge/Hire%20Me%20on-Upwork-6FDA44?style=for-the-badge&logo=upwork&logoColor=white)](https://www.upwork.com/freelancers/evancechapuma)
 [![n8n](https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)](https://n8n.io)
 [![Make](https://img.shields.io/badge/Make-6D00CC?style=for-the-badge&logo=make&logoColor=white)](https://www.make.com)
 [![Zapier](https://img.shields.io/badge/Zapier-FF4A00?style=for-the-badge&logo=zapier&logoColor=white)](https://zapier.com)
@@ -23,7 +23,7 @@ My core stack spans **n8n**, **Make (Integromat)**, **Zapier**, **Vapi** (voice 
 
 I don't just connect APIs. I design systems that handle edge cases, fail gracefully, and scale with your business.
 
-📬 **Available for hire:** [Upwork Profile](https://www.upwork.com/freelancers/YOUR_PROFILE_ID)
+📬 **Available for hire:** [Upwork Profile](https://www.upwork.com/freelancers/evancechapuma)
 
 ---
 
@@ -161,4 +161,4 @@ MIT — see [LICENSE](./LICENSE) for details.
 
 ---
 
-*Built with care by [Evance Chapuma](https://www.upwork.com/freelancers/YOUR_PROFILE_ID)*
+*Built with care by [Evance Chapuma](https://www.upwork.com/freelancers/evancechapuma)*
