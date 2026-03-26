@@ -104,7 +104,7 @@ A complete event management pipeline over WhatsApp. Ingests event details from a
 
 ## Tech Stack Overview
 
-![Tech Stack](./assets/tech-stack.svg)
+![Tech Stack](./assets/tech_stack_mindmap_v2.svg)
 
 ---
 
