@@ -37,4 +37,4 @@ Use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md) to flag:
 
 ## Questions?
 
-Open an issue or reach out via [Upwork](https://www.upwork.com/freelancers/YOUR_PROFILE_ID).
+Open an issue or reach out via [Upwork](https://www.upwork.com/freelancers/evancechapuma).
