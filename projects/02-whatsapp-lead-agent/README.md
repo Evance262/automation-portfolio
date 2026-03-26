@@ -163,4 +163,4 @@ MIT — see [LICENSE](../../LICENSE) for details.
 
 ---
 
-*Built by [Evance Chapuma](https://www.upwork.com/freelancers/YOUR_PROFILE_ID) — AI Automation Specialist*
+*Built by [Evance Chapuma](https://www.upwork.com/freelancers/evancechapuma) — AI Automation Specialist*
