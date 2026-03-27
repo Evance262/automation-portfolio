@@ -1,0 +1,1408 @@
+{
+  "name": "Personal Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }} {{ $json.text }} ",
+        "options": {
+          "systemMessage": "=# Personal Assistant AI Agent\n\n## Role\nYou are a fast, decisive personal assistant. Route requests \nto the correct sub-agent and execute immediately. Do not \nover-explain or ask unnecessary questions. Act, then report.\n\n## Current Date & Time\n{{ $now.format('MMMM DD, YYYY [at] HH:mm') }} (CAT, Africa/Blantyre, UTC+2)\n\n## Available Tools\n\n### ContactAgent\n- Retrieve HubSpot contact details (email, phone, profile)\n- Call FIRST whenever a person is mentioned by name\n\n### EmailAgent\n- Send, reply, read, label, and delete Gmail emails\n\n### CalendarAgent\n- View, create, update, and delete Google Calendar events\n- Always use Africa/Blantyre (CAT, UTC+2) timezone\n\n### ContentAgent\n- Generate professional reports and documents\n- Always return full output — never summarize or truncate\n\n### SMS/WhatsApp (Twilio)\n- Send SMS or WhatsApp messages\n- Only use when user explicitly requests it\n\n## Workflow Rules\n\n1. **Person mentioned by name** → Call ContactAgent first, \n   then pass retrieved details to the next agent\n2. **Email/Calendar/SMS with no specific person** → Call \n   the relevant agent directly\n3. **Report requested** → Call ContentAgent, return full \n   output. If user wants it emailed, chain into EmailAgent\n4. **SMS/WhatsApp** → Only when explicitly requested\n\n## Confirmation Rules\nOnly confirm with the user before:\n- Sending an email\n- Deleting an email or thread\n\nFor everything else — execute immediately and report what \nwas done.\n\n## Execution Process\n1. Analyze intent and dependencies\n2. Execute tool chain in correct order\n3. Call \"think++\" to verify all steps were completed\n4. Report back concisely — what was done, key details only\n\n## Response Style\n- Act first, report after\n- No preamble, no unnecessary questions\n- If truly ambiguous, ask ONE short clarifying question\n- Always call \"think++\" after completing any tool chain\n\n## Reminders\n✓ ContactAgent before EmailAgent/CalendarAgent/SMS (named people)\n✓ Africa/Blantyre timezone for all scheduling\n✓ Full ContentAgent output — never truncate\n✓ SMS/WhatsApp only when explicitly asked\n✓ think++ after every tool chain"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -832,
+        64
+      ],
+      "id": "96f13deb-f536-4ceb-8ef1-b53b48a3bd3d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1856,
+        512
+      ],
+      "id": "32a10e35-44c5-442d-9c27-e8736e30d97a",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "mvHRARyaM5kC0GwU",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Twilio Trigger').item.json.From }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1728,
+        512
+      ],
+      "id": "41926498-10c1-48ba-a022-7292adb37c93",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        -1600,
+        512
+      ],
+      "id": "fc45004d-3f9a-4954-9536-c63d54f32dae",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=You are a Contact Manager agent with access to HubSpot. \nYou help the user search, view, create, and update contacts.\n\n## STRICT RULES\n\n1. NEVER call \"Get a contact\" directly using a person's name.\n   HubSpot requires a numeric contact ID (VID), not a name.\n\n2. ALWAYS follow this sequence when retrieving contact details:\n   Step 1 → Use \"Search contacts\" with the person's name or email\n   Step 2 → Extract the numeric contact ID from the search result\n   Step 3 → Use that ID in \"Get a contact\"\n\n3. When creating or updating a contact:\n   - Always search first to check if the contact already exists\n   - If they exist, use \"Create or update a contact\" (upsert) with their email\n   - If they don't exist, create them with as much detail as provided\n\n4. When searching, prefer email over name when available — \n   it returns more accurate results.\n\n## RESPONSE FORMAT\n- Be concise and clear\n- When showing contact details, present them in a readable format\n- If a contact is not found, say so clearly and ask if they'd \n  like to create one"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        -1472,
+        512
+      ],
+      "id": "af1a56c1-18ed-4939-98e2-a0e15fb566ba",
+      "name": "Contact Manager"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1632,
+        720
+      ],
+      "id": "a6e8d634-6bc7-47ea-a1e6-aea152f14865",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZI9fiFuGdLRxbRuz",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "operation": "search",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.hubspotTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1504,
+        720
+      ],
+      "id": "243b4fdf-4817-4e4c-9b85-23e689b14bd2",
+      "name": "Search contacts",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "CpA4D0AJ5ABDBKpk",
+          "name": "HubSpot App Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email', ``, 'string') }}",
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspotTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1376,
+        720
+      ],
+      "id": "6e9b57bf-febc-4b94-8b68-dca79d3bb1fd",
+      "name": "Create or update a contact",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "CpA4D0AJ5ABDBKpk",
+          "name": "HubSpot App Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "operation": "get",
+        "contactId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Contact_to_Get', ``, 'string') }}",
+          "mode": "id"
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.hubspotTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1248,
+        720
+      ],
+      "id": "130ec3e1-2dfe-455f-aa3b-698a24b45072",
+      "name": "Get a contact",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "CpA4D0AJ5ABDBKpk",
+          "name": "HubSpot App Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=# Email Manager Agent\n\nYou manage Gmail. Execute immediately except where noted.\n\n## Actions\n- Read/fetch emails → execute immediately\n- Add/remove labels → execute immediately\n- Reply to emails → execute immediately\n- Delete threads → confirm with user first\n- Send new emails → confirm recipient and subject first\n\n## Rules\n1. When fetching, summarize: sender, subject, date, brief body\n2. List multiple emails newest first\n3. When sending, confirm recipient + subject before sending\n4. When deleting, warn user and require confirmation\n5. Use professional but natural tone unless told otherwise\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        -1120,
+        496
+      ],
+      "id": "8a67db1f-7f7d-41fb-bc9c-fc0b285f0207",
+      "name": "Email Manager"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1136,
+        704
+      ],
+      "id": "0d2fa19d-8a83-4027-b9d4-00e240462b89",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZI9fiFuGdLRxbRuz",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1008,
+        704
+      ],
+      "id": "2e0d14be-823b-4635-a10a-75bc0e527442",
+      "name": "Send a message in Gmail",
+      "webhookId": "b5d54651-7155-44d3-855e-a753c47e757f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "neWyZOxX4ScanZ52",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -880,
+        704
+      ],
+      "id": "213ab8db-9563-4f80-8814-a26a271dc238",
+      "name": "Reply to a message in Gmail",
+      "webhookId": "27b3d86f-79d0-4e59-8ab6-c2828c835d22",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "neWyZOxX4ScanZ52",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "labelIds": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Label_Names_or_IDs', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -752,
+        704
+      ],
+      "id": "a4e85436-1e99-4299-bf32-946039bbad09",
+      "name": "Add label to message in Gmail",
+      "webhookId": "27b3d86f-79d0-4e59-8ab6-c2828c835d22",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "neWyZOxX4ScanZ52",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "labelIds": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Label_Names_or_IDs', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1008,
+        864
+      ],
+      "id": "5dc11088-0e02-4314-b96e-8643fcea4d70",
+      "name": "Remove label from message in Gmail",
+      "webhookId": "27b3d86f-79d0-4e59-8ab6-c2828c835d22",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "neWyZOxX4ScanZ52",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "delete",
+        "threadId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Thread_ID', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -880,
+        864
+      ],
+      "id": "1128f175-509d-4808-9146-03ed4f08c68b",
+      "name": "Delete a thread in Gmail",
+      "webhookId": "27b3d86f-79d0-4e59-8ab6-c2828c835d22",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "neWyZOxX4ScanZ52",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -512,
+        704
+      ],
+      "id": "9a92eeca-bd51-48d1-90b0-d590b6f3903e",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZI9fiFuGdLRxbRuz",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "+14155238886",
+        "to": "+265884510560",
+        "toWhatsapp": true,
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -96
+      ],
+      "id": "afd2cde2-9bb7-4bd2-8de3-573f0afdb144",
+      "name": "Send an SMS/MMS/WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "TTC75RmVkn5cojzm",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "com.twilio.messaging.inbound-message.received"
+        ]
+      },
+      "type": "n8n-nodes-base.twilioTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2288,
+        -16
+      ],
+      "id": "4571f47a-742b-4c54-872d-a4efb56b6dee",
+      "name": "Twilio Trigger",
+      "webhookId": "f2a95eb8-846b-43fc-8a23-eee856e58dd5",
+      "credentials": {
+        "twilioApi": {
+          "id": "TTC75RmVkn5cojzm",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool to take action in calendar",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=# Calendar Manager Agent\n\nYou manage Google Calendar. Execute immediately except \nwhere noted.\n\n## Timezone\nAlways use Africa/Blantyre (CAT, UTC+2) for all events.\n\n## Actions\n- View events → execute immediately\n- Create events → execute immediately\n- Create events with attendees → execute immediately\n- Update events → execute immediately\n- Delete events → confirm with user first\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        -688,
+        496
+      ],
+      "id": "b11c18e5-a2da-4b69-8eac-6c9351f72153",
+      "name": "Calendar Manager"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -752,
+        864
+      ],
+      "id": "0eef1189-f4c8-44ba-9d2d-135012f49d35",
+      "name": "Get many messages in Gmail",
+      "webhookId": "27b3d86f-79d0-4e59-8ab6-c2828c835d22",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "neWyZOxX4ScanZ52",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -304,
+        80
+      ],
+      "id": "a6fde158-4f20-49d6-a98e-616d92ddb94f",
+      "name": "Send a text message",
+      "webhookId": "3ceda042-1f3d-45e8-83bf-e0d8dfcafefa",
+      "credentials": {
+        "telegramApi": {
+          "id": "ir4O5c5R1yavKw1s",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "70d39f81-2105-40f0-89d0-2bf003044d5a",
+                    "leftValue": "={{ !!$json.message.voice.mime_type }}",
+                    "rightValue": "={{ $json.message.voice.mime_type }}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ !!$json.message.text }}",
+                    "rightValue": "={{ $json.message.text }}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "fa4e0a42-cdf3-41ea-90ec-9611d642b913"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2064,
+        208
+      ],
+      "id": "29374208-7c71-4c0d-90b0-5f7e34de2e4b",
+      "name": "Switch Text/Audio"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -1616,
+        128
+      ],
+      "id": "a519a65b-832b-42d0-9f57-4ffb891fcb5c",
+      "name": "Transcribe VN",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZI9fiFuGdLRxbRuz",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3eb6e908-1b6a-4571-a2cd-697c7078d123",
+              "name": "message.text",
+              "value": "={{ $json.text || $json.message?.text }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1392,
+        208
+      ],
+      "id": "c3f4f9f4-1599-4f76-a2a6-aeac4ce5eddf",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1840,
+        128
+      ],
+      "id": "27f63cf0-e41d-4cf7-921e-4952f02a8802",
+      "name": "Get a file",
+      "webhookId": "9168ad73-2948-48f0-9a0c-58abc8a1fc2a",
+      "credentials": {
+        "telegramApi": {
+          "id": "ir4O5c5R1yavKw1s",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2288,
+        208
+      ],
+      "id": "9468a271-f0a9-4d54-9fca-b98cac5cbefd",
+      "name": "Telegram Trigger",
+      "webhookId": "0d8f3ded-5aec-4a4e-9646-89d5e84bbdab",
+      "credentials": {
+        "telegramApi": {
+          "id": "ir4O5c5R1yavKw1s",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "evancechapuma62@gmail.com",
+          "mode": "list",
+          "cachedResultName": "evancechapuma62@gmail.com"
+        },
+        "returnAll": true,
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        704
+      ],
+      "id": "c7d74bb4-04b8-4727-9bbf-2a8e5369f3a2",
+      "name": "Get Events",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "imqMNxOAtfFYVIP9",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "evancechapuma62@gmail.com",
+          "mode": "list",
+          "cachedResultName": "evancechapuma62@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        704
+      ],
+      "id": "16d4543a-b276-46a9-810d-93eca379644b",
+      "name": "Delete Events",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "imqMNxOAtfFYVIP9",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "mode": "list",
+          "value": "evancechapuma62@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -512,
+        864
+      ],
+      "id": "716a189e-a5f1-4d26-bdc8-d0d9ff599bf0",
+      "name": "Create Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "imqMNxOAtfFYVIP9",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "evancechapuma62@gmail.com",
+          "mode": "list",
+          "cachedResultName": "evancechapuma62@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', ``, 'string') }}"
+          ],
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        864
+      ],
+      "id": "77070712-8c41-4ea2-9cbe-5da69b59b1bd",
+      "name": "Create Event with Attendee",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "imqMNxOAtfFYVIP9",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "evancechapuma62@gmail.com",
+          "mode": "list",
+          "cachedResultName": "evancechapuma62@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {
+          "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+          "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        864
+      ],
+      "id": "9a9de46d-3df3-463f-a7f4-a5232d37883f",
+      "name": "Update Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "imqMNxOAtfFYVIP9",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this agent to create  professional reports and documents",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=#Overview\n\nYou generate professional reports and documents.\nExecute immediately — no confirmation needed.\n\n## Rules\n1. Generate complete, well-structured content\n2. Use clear headings and sections\n3. Match the tone to the request (formal for reports, \n   clear and direct for documents)\n4. Always return the FULL output — never summarize \n   or truncate\n\n## Response\nReturn the complete document. No preamble, just the content."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        -416,
+        256
+      ],
+      "id": "adb46008-270b-42c0-936c-ab849326e70a",
+      "name": "Content Creation Agent"
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-sonnet-4.6",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        480
+      ],
+      "id": "75ebf507-fa4a-42bc-abe2-b440d238c53a",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "mvHRARyaM5kC0GwU",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "folderId": "11vToq35QHkvFPzrFyga4YtkQFDFAXyHh",
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        480
+      ],
+      "id": "90db4888-6e1c-432e-89f4-34b141410fc8",
+      "name": "Create a document in Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "6PKtDnc3amwiYYlT",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -1616,
+        -80
+      ],
+      "id": "58bbadcd-44b6-43a3-b22a-62c04e94870c",
+      "name": "Transcribe VN1",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZI9fiFuGdLRxbRuz",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3eb6e908-1b6a-4571-a2cd-697c7078d123",
+              "name": "message.text",
+              "value": "={{ $('Twilio Trigger').item.json.Body }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1392,
+        -16
+      ],
+      "id": "dde2ce2d-b104-4eba-aec0-d3e7ccadf670",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "url": "={{ $node[\"Twilio Trigger\"].json[\"body\"][\"MediaUrl0\"] }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1840,
+        -80
+      ],
+      "id": "8bf29dfa-1e27-401f-8e15-5c67447495f1",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "DJCOY9Kq5t9FVjwo",
+          "name": "Twilio Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "70d39f81-2105-40f0-89d0-2bf003044d5a",
+                    "leftValue": "={{ $json.MessageType === \"audio\" }}",
+                    "rightValue": "={{ $json.message.voice.mime_type }}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.MessageType === \"text\" }}",
+                    "rightValue": "={{ $json.message.text }}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "fa4e0a42-cdf3-41ea-90ec-9611d642b913"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2064,
+        -16
+      ],
+      "id": "dee728f7-ebcd-4eff-90cc-3b00cba79475",
+      "name": "Switch Text/Audio1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Manager": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Contact Manager",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send an SMS/MMS/WhatsApp message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search contacts": {
+      "ai_tool": [
+        [
+          {
+            "node": "Contact Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or update a contact": {
+      "ai_tool": [
+        [
+          {
+            "node": "Contact Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a contact": {
+      "ai_tool": [
+        [
+          {
+            "node": "Contact Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Manager": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Manager",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove label from message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a thread in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calendar Manager",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twilio Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch Text/Audio1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar Manager": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Text/Audio": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe VN": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribe VN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch Text/Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Events": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Events": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event with Attendee": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Creation Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Creation Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a document in Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Content Creation Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe VN1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Transcribe VN1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Text/Audio1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Africa/Blantyre",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "1ad87558-5d0f-46a2-8299-a6194c9aac28",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc52a782c5ff6557782de50397354b618888d5105091f91f804f057444f5ed1f"
+  },
+  "id": "NEFAkUZeKgke0HVb8I-cs",
+  "tags": [
+    {
+      "updatedAt": "2026-03-02T06:29:19.945Z",
+      "createdAt": "2026-03-02T06:29:19.945Z",
+      "id": "ZykKajJVeaQwHY4t",
+      "name": "CRM"
+    }
+  ]
+}
