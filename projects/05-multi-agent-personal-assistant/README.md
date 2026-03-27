@@ -135,7 +135,7 @@ Classifies incoming commands by domain and extracts structured intent. Returns a
 
 1. **Clone this repository**
    ```bash
-   git clone https://github.com/EvanceChapuma/automation-portfolio.git
+   git clone https://github.com/evancechapuma/automation-portfolio.git
    cd automation-portfolio/projects/05-multi-agent-personal-assistant
    ```
 

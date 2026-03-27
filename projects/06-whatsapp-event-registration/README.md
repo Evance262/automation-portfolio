@@ -142,7 +142,7 @@ Bus seats are pre-loaded in Airtable as rows with fields: `seat_number`, `bus_ro
 
 1. **Clone this repository**
    ```bash
-   git clone https://github.com/EvanceChapuma/automation-portfolio.git
+   git clone https://github.com/evancechapuma/automation-portfolio.git
    cd automation-portfolio/projects/06-whatsapp-event-registration
    ```
 

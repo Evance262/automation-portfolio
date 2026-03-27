@@ -111,7 +111,7 @@ Alex's `lookup_faq` tool call sends the caller's described issue to n8n, which p
 
 1. **Clone this repository**
    ```bash
-   git clone https://github.com/EvanceChapuma/automation-portfolio.git
+   git clone https://github.com/evancechapuma/automation-portfolio.git
    cd automation-portfolio/projects/04-vapi-customer-support
    ```
 
