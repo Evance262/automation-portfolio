@@ -41,6 +41,7 @@ I don't just connect APIs. I design systems that handle edge cases, fail gracefu
 | 08 | [Weekly KPI Summary — Wellness Practice](#08-weekly-kpi-summary--wellness-practice) | Automated weekly business report — parallel Airtable fetching, JS KPI calculation, AI insights, branded HTML email | n8n · Airtable · Claude Sonnet · Gmail | [→](./projects/08-hackensack-weekly-kpi/) |
 | 09 | [Real Estate — Lead-to-Close Automation](#09-real-estate--lead-to-close-automation) | Two-workflow pipeline: W1 AI-qualifies inbound leads and routes them to ClickUp, books discovery calls, and alerts the agent; W2 fires when a deal is Won and provisions the full client project across Drive, ClickUp, Gmail, and Slack in under 60 seconds | n8n · Claude Opus · Claude Sonnet · ClickUp · Google Drive · Google Calendar · Gmail · Slack | [→](./projects/09-real-estate-lead-to-close/) |
 | 10 | [Candidate Pipeline Automation](#10-candidate-pipeline-automation) | End-to-end Zapier recruitment pipeline — Claude AI parses CV submissions from Typeform, scores skill overlap against open roles, routes to Shortlisted or Talent Pool in Airtable, creates a ClickUp review task, sends an acknowledgement email, and fires a Slack recruiter reminder after 3 days if no action taken | Zapier · Claude Sonnet · Typeform · Airtable · ClickUp · Gmail · Slack | [→](./projects/10-candidate-pipeline/) |
+| 11 | [Rooms OKC — Rental Marketplace Platform](#11--rooms-okc--rental-marketplace-platform) | Production Django marketplace serving three audiences — public listings site, agency CMS, and self-service owner portal — with lead ownership and SLA escalation, a Cloudflare Email Worker that threads tenant replies back onto their lead, a listing review queue, layered spam defence, and cookieless first-party analytics. 849 tests, CI, four cron services | Django · PostgreSQL · Redis · Cloudflare (R2 · CDN · Workers · Turnstile) · Railway · Docker | [→](./projects/11-rooms-okc/) |
 
 ---
 
@@ -116,6 +117,20 @@ An 8-workflow autonomous receptionist stack for law firms. An AI triage agent cl
 
 ---
 
+### 11 — Rooms OKC — Rental Marketplace Platform
+
+A production Django platform for a room-rental agency in Oklahoma City, serving three distinct audiences from one codebase: a public listings site for tenants, a bespoke CMS for agency staff, and a self-service portal for invited property owners.
+
+The build is organised around the problems that start *after* a tenant clicks send. **Lead ownership is explicit** — read scope and write scope are separate querysets, so a manager can oversee every owner's leads while only being able to *act* on their own; an hourly cron escalates a lead to the agency only when the owner's response window lapses, which is the sole path that transfers that right. **A dependency-free Cloudflare Email Worker** sits in the domain's mail routing and hands inbound messages to the app, so a tenant's email reply threads back onto its lead instead of landing in a shared mailbox — and the app tells the Worker, per message, whether the mailbox should even receive a copy, which is what eliminated the duplicate-email problem. **Owner listings pass a review queue** before the public sees them, with re-review triggered only by material changes, and the owner-facing explanation of that rule generated from the same frozen field set the workflow branches on. **Contact-form spam** is met with a honeypot, weighted heuristic scoring, and Turnstile — flagged leads are quarantined rather than deleted, and the auto-reply is suppressed so the form can't be used as a relay. **Traffic is measured in-house** with a date-salted visitor hash: no cookie, no stored IP, no consent banner, and every recorded path validated against the URLconf before it's written.
+
+Rounded out with a full media pipeline (EXIF-stripped photo processing, background FFmpeg video transcoding), version-stamped cache invalidation behind a Cloudflare CDN, a 30-day grace period on account deletion that keeps lead history when a landlord leaves, and a JSON-LD/SEO layer that deliberately withholds contact details from structured data to keep them unharvestable.
+
+**Engineering:** ~11,300 lines of application Python across six Django apps · **849 tests** on real Postgres · CI running Ruff lint/format plus the full suite on every push · four scheduled cron services · nightly backups with a tested restore path.
+
+[View project →](./projects/11-rooms-okc/)
+
+---
+
 ### 10 — Candidate Pipeline Automation
 
 A three-Zap Zapier system that automates the full CV intake-to-review cycle for a recruitment team.
@@ -176,7 +191,8 @@ automation-portfolio/
 │   ├── 07-law-firm-receptionist/
 │   ├── 08-hackensack-weekly-kpi/
 │   ├── 09-real-estate-lead-to-close/
-│   └── 10-candidate-pipeline/
+│   ├── 10-candidate-pipeline/
+│   └── 11-rooms-okc/
 ├── templates/
 │   └── workflow-readme-template.md
 ├── .github/
